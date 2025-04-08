@@ -22,9 +22,24 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
+
     if "//x.com" in message.content:
         fixed_message = message.content.replace("//x.com", "//fixupx.com")
         await message.delete()
-        await message.channel.send(f"{message.author.mention}:\n\"{fixed_message}\"")
+
+        kwargs = {
+            "content": f"{message.author.mention}:\n{fixed_message}"
+        }
+
+        # Handle Replies
+        if message.reference:
+            try:
+                replied_to = await message.channel.fetch_message(message.reference.message_id)
+                kwargs["reference"] = replied_to
+                kwargs["mention_author"] = False 
+            except discord.NotFound:
+                pass # Ignore if message not found
+
+        await message.channel.send(**kwargs)
 
 client.run(TOKEN)
